@@ -1,0 +1,29 @@
+FIND FILE WITH EXTENSION .c
+Directory: /home/pauluses/Desktop/project/УРВС/lab1_var4
+File: unix_way.c
+
+
+Directory: /home/pauluses/Desktop/project/УРВС
+FILE WITH .c NOT FOUND
+
+
+Directory: /home/pauluses/Desktop/project
+FILE WITH .c NOT FOUND
+
+
+Directory: /home/pauluses/Desktop
+File: calc.c
+
+
+Directory: /home/pauluses
+FILE WITH .c NOT FOUND
+
+
+Directory: /home
+FILE WITH .c NOT FOUND
+
+
+Directory: /
+FILE WITH .c NOT FOUND
+
+
