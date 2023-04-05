@@ -34,6 +34,6 @@ class Translator {
 
     bool AnalysisStr(std::string str);
     int AnalusisSym(std::string symbol);
-    void CheckIdent(std::string str, bool& flag);
+
 
 };
