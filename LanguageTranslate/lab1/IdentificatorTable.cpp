@@ -24,7 +24,8 @@ void Identificator::set_value(bool assign) {
     value = assign;
 }
 
-
+IdentificatorTable::IdentificatorTable() {
+}
 
 IdentificatorTable::IdentificatorTable(int size) {
     table.resize(size);

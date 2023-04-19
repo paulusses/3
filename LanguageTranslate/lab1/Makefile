@@ -15,3 +15,5 @@ full_clean:
 	rm -f *.out tests
 
 .PHONY: all test clean full_clean
+
+../lab1/

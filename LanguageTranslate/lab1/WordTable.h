@@ -15,7 +15,11 @@ class WordTable {
 
     bool insert(std::string word); //  ввести слово
 
+    int FindInTable(std::string word);
+
     bool SaveTable(std::string file);  // сохранить таблицу в файл
+    
+    void ShowTable();
 
     private:
 

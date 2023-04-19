@@ -23,6 +23,14 @@ public:
         return false;
     }
 
+    int CheckInTable(T value) {
+        for (int i = 0; i < table.size();i++) {
+            if (table[i].second == value) {
+                return i;
+            }
+        }
+        return -1;
+    }
     bool ChangeValue(T value, T NewValue) { //  функция изменения значения, поиск по значению
         for (auto& row: table) {
             if (row.second == value) {

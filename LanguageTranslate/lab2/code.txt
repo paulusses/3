@@ -1,0 +1,6 @@
+int main {
+    int b;
+    int c;
+    float 2.2;
+    return 0;
+}

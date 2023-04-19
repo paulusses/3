@@ -1,10 +1,16 @@
 #include "WordTable.h"
 
+void WordTable::ShowTable() {
+    	for (int i = 0; i < words.size(); i++) {
+    		std::cout << words[i] << std::endl;
+    	}
+}
+
 bool WordTable::LoadTable(std::string file) {
     std::ifstream in(file);
-    if (in.is_open()) {
+    while (!in.eof()) {
         std::string line;
-        while(getline(in, line)) {
+        in >> line;
             if (CheckInTable(line)) {
                 return false;
             } else {
@@ -13,9 +19,6 @@ bool WordTable::LoadTable(std::string file) {
         }
         in.close();
         return true;
-    } else {
-        return false;
-    }
 }
 
 bool WordTable::CheckInTable(std::string word) {
@@ -25,6 +28,16 @@ bool WordTable::CheckInTable(std::string word) {
     } else {
         return false;
     }
+}
+
+int WordTable::FindInTable(std::string word) {
+    //std::cout << words.size();
+    for (int i = 0; i < words.size(); i++) {
+        if (word.compare(words[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 bool WordTable::insert(std::string word) {

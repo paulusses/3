@@ -35,6 +35,7 @@ class IdentificatorTable {
     public:
     IdentificatorTable(int size);
 
+    IdentificatorTable();
 
     // ~IdentificatorTable() {
     //     delete[] table;

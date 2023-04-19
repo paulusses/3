@@ -3,10 +3,6 @@
 #include"../lab1/IdentificatorTable.h"
 
 
-class token {
-    int table;
-    int posotion;
-};
 
 class Translator {
     public:
@@ -16,10 +12,10 @@ class Translator {
 
     private:
 
-    WordTable word; // ключевые слова
-    WordTable separators; // разделители
-    WordTable assignment; // присваивание
-    WordTable operat; //  +, -, ==, != ......
+    WordTable word; // ключевые слова 1
+    WordTable separators; // разделители 2
+    WordTable assignment; // присваивание 3
+    WordTable operat; //  +, -, ==, != ...... 4 
     WordTable numbers;
     WordTable letters; 
 
@@ -34,6 +30,7 @@ class Translator {
 
     bool AnalysisStr(std::string str);
     int AnalusisSym(std::string symbol);
+    void AddToken(int t, int p, std::ofstream ifs);
 
 
 };

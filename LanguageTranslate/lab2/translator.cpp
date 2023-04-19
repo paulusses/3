@@ -1,5 +1,12 @@
 #include"translator.h"
 #include<string>
+#include<sstream>
+
+
+
+void Translator::AddToken(int t, int p, std::ofstream ifs) {
+    ifs << "(" << t << ", " << p << ")" << std::endl;;
+}
 
 Translator::Translator() {
     word.LoadTable("./table/words.txt"); // t1
@@ -14,14 +21,24 @@ bool Translator::StateMachine(std::string code, std::string errors, std::string 
     TokenLog.open(tokens);
     ErrorLog.open(errors);
     std::string str;
+    std::string tmp;
     bool Error = false;
+    int line = 1;
     while(!Source.eof() && !Error) {
-        Source >> str;
-        Error = AnalysisStr(str);
-
+        getline(Source, str);
+        std::stringstream ss(str);
+        while(ss >> tmp) {
+            Error = !(AnalysisStr(tmp));
+            if (Error) {
+                ErrorLog << "Error: in string " << line << std::endl;
+            }
+        }
+        line++;
     }
-
-    return Error;
+    Source.close();
+    TokenLog.close();
+    ErrorLog.close();
+    return !Error;
 }
 
 bool Translator::AnalysisStr(std::string str) {
@@ -32,6 +49,7 @@ bool Translator::AnalysisStr(std::string str) {
         std::string thisstr = str;
         symbol = str[0];
         bool flag = false;
+        
         int check = AnalusisSym(symbol);
         switch (check)
         {
@@ -47,10 +65,10 @@ bool Translator::AnalysisStr(std::string str) {
             str = str.substr(0, i);
             int pos = word.FindInTable(str);
             if (pos != -1) {
-                // добавляем токен (1, pos)
+                TokenLog << "(" << 1 << ", " << pos << ")" << std::endl;;
             } else {
                 Ident.insert(str, 0, 0);
-                // добавляем токент
+                TokenLog << "(" << 7 << ", " << Ident.CheckInTable(str) << ")" << std::endl;;
             }
             flag = !AnalysisStr(next);
         }
@@ -77,12 +95,12 @@ bool Translator::AnalysisStr(std::string str) {
                 if (pos != std::string::npos) {
                     float tmp = std::stod(str);
                     const_float.insert(3, tmp);
-                    //токен (10, pos)
+                    TokenLog << "(" << 10 << ", " << const_float.CheckInTable(tmp) << ")" << std::endl;;
                     flag = !AnalysisStr(next);
                 } else {
                     int tmp = std::stoi(str);
                     const_int.insert(2, tmp);
-                    // токен
+                    TokenLog << "(" << 9 << ", " << const_int.CheckInTable(tmp) << ")" << std::endl;;
                     flag = !AnalysisStr(next);
                 }
             } 
@@ -108,7 +126,7 @@ bool Translator::AnalysisStr(std::string str) {
             }
             if (flag) {
                 int n = operat.FindInTable(oper);
-                // token
+                TokenLog << "(" << 4 << ", " << n << ")" << std::endl;;
             }
             } else {
                 if (str.size() > 1) {
@@ -130,7 +148,7 @@ bool Translator::AnalysisStr(std::string str) {
                             flag = !AnalysisStr(next);
                         } else {
                             flag = true;
-                            // вывод о ошибке незакрытого комментария
+                            ErrorLog << "Error: incorrect comment!" << std::endl;
                         }
                     }
                         break;
@@ -142,13 +160,13 @@ bool Translator::AnalysisStr(std::string str) {
                         break;
 
                     default: {
-                     // вывод о ошибке  
+                     ErrorLog << "Error: '/' dont close comment!" << std::endl;
                      flag = true;                     
                     }
                         break;
                     }
                 }  else {
-                    // вывод о ошибке
+                    ErrorLog << "Error: '/' dont close comment!" << std::endl;
                     flag = true;
                 }
             }   
@@ -158,19 +176,19 @@ bool Translator::AnalysisStr(std::string str) {
             next = str.substr(1);
             symbol = str[0];
             int pos = separators.FindInTable(symbol);
-            // token
+            TokenLog << "(" << 2 << ", " << pos << ")" << std::endl;;
             flag = !AnalysisStr(next);
         }
             break;
 
         default:  {
-            // вывод о ошибке
+            ErrorLog << "Error: what is firts symbol " << std::endl;
             Error = true;
         }
             break;
         };
         if (flag) {
-            // вывод о ошибке
+            ErrorLog << "Error: in " << thisstr << std::endl;
         }
         return !(Error || flag);
     } else {
@@ -179,6 +197,7 @@ bool Translator::AnalysisStr(std::string str) {
 }
 
 int Translator::AnalusisSym(std::string symbol) {
+   // letters.ShowTable();
     if (letters.CheckInTable(symbol)) {
         return 1;
     } else if(separators.CheckInTable(symbol)) {
@@ -190,4 +209,12 @@ int Translator::AnalusisSym(std::string symbol) {
     } else {
         return 0;
     }
+}
+
+
+
+int main() {
+    Translator T;
+    T.StateMachine("code.txt", "errors.txt", "tokens.txt");
+    return 0;
 }
