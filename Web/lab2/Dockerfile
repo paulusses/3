@@ -7,8 +7,13 @@ WORKDIR /app
 # Копируем файлы package.json и package-lock.json в рабочую директорию
 COPY package*.json ./
 
+COPY init.sql /docker-entrypoint-initdb.d/
+
+
 # Устанавливаем зависимости
 RUN npm install
+
+
 
 # Копируем остальные файлы проекта в рабочую директорию
 COPY . .

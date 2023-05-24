@@ -6,9 +6,9 @@ const path = require('path');
 const app = express();
 const pool = new Pool({
   user: 'postgres',
-  host: 'localhost',
+  host: 'db',
   database: 'comments',
-  password: '2807',
+  password: 'master',
   port: 5432, // Порт PostgreSQL
 });
 

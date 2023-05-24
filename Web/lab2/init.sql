@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS comments (
+  id SERIAL PRIMARY KEY,
+  text TEXT,
+  author TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
