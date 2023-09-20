@@ -66,7 +66,7 @@ matrix_to_csv('matrix2.csv', df2)
 
 ######## 1.0
 
-# Вычисление рангов для всех переменных
+# Вычисление коэффициента Спирмена для всех переменных
 ranked_data = df.rank()
 spearman_corr_matrix = ranked_data.corr(method='spearman')
 matrix_to_csv('spearman_matrix.csv', spearman_corr_matrix)
