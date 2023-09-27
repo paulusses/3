@@ -70,3 +70,60 @@ matrix_to_csv('matrix2.csv', df2)
 ranked_data = df.rank()
 spearman_corr_matrix = ranked_data.corr(method='spearman')
 matrix_to_csv('spearman_matrix.csv', spearman_corr_matrix)
+
+############
+
+alpha = 0.05
+with open("2.1.txt", "w") as file:
+    # Проверьте значимость коэффициентов корреляции и запишите результаты в файл
+    for i in range(len(df.columns)):
+        for j in range(i + 1, len(df.columns)):
+            var1 = df.columns[i]
+            var2 = df.columns[j]
+            spearman_corr, p_value = spearmanr(df[var1], df[var2])
+            
+            file.write(f"Корреляция между {var1} и {var2}:\n")
+            file.write("Коэффициент корреляции Спирмена: {}\n".format(spearman_corr))
+            file.write("p-значение: {}\n".format(p_value))
+
+            # Проверка гипотезы на значимость
+            if p_value < alpha:
+                file.write("Гипотеза о незначимости корреляции отвергается\n")
+            else:
+                file.write("Гипотеза о незначимости корреляции не отвергается\n")
+            
+            file.write("\n")
+
+num_permutations = 1000 
+
+with open("2.2", "w") as file:
+    # Проверьте значимость коэффициентов корреляции и запишите результаты в файл
+    for i in range(len(df.columns)):
+        for j in range(i + 1, len(df.columns)):
+            var1 = df.columns[i]
+            var2 = df.columns[j]
+            
+            # Вычислите коэффициент корреляции Спирмена
+            observed_corr, _ = spearmanr(df[var1], df[var2])
+            
+            # Сгенерируйте случайные перестановки и вычислите коэффициент корреляции для каждой
+            random_correlations = []
+            for _ in range(num_permutations):
+                shuffled_var2 = np.random.permutation(df[var2])
+                random_corr, _ = spearmanr(df[var1], shuffled_var2)
+                random_correlations.append(random_corr)
+            
+            # Вычислите p-значение как долю случайных корреляций, которые больше или равны наблюдаемой
+            p_value = (np.sum(np.abs(random_correlations) >= np.abs(observed_corr)) + 1) / (num_permutations + 1)
+            
+            file.write(f"Корреляция между {var1} и {var2}:\n")
+            file.write("Наблюдаемый коэффициент корреляции Спирмена: {}\n".format(observed_corr))
+            file.write("p-значение (перестановочный критерий): {}\n".format(p_value))
+
+            # Проверка гипотезы на значимость
+            if p_value < alpha:
+                file.write("Гипотеза о незначимости корреляции отвергается\n")
+            else:
+                file.write("Гипотеза о незначимости корреляции не отвергается\n")
+            
+            file.write("\n")
