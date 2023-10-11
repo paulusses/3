@@ -39,8 +39,11 @@ def model_two_factor_no_e():
     plt.show()
 
 def show_thett(y, x):
+    plt.grid(True)
     plt.plot(y)
     plt.plot(x)
+    plt.xlabel('X@thetta')
+    plt.ylabel('y')
     plt.title('Сопоставление y с X*thetta')
     plt.show()
     #plt.savefig('X@thett.png')
@@ -61,8 +64,8 @@ model_two_factor_no_e()
 u = np.array(u_value)
 ##w = np.var(u)
 w = (u - np.mean(u)).T @ (u - np.mean(u)) / (np.size(u) - 1)
-p = 0.1
-noise = np.random.normal(0, (p*w),np.size(u))
+p = 0.05
+noise = np.random.normal(0, (p*w)**0.5,np.size(u))
 y = u + noise
 # Создаем DataFrame из списка данных
 data = {
