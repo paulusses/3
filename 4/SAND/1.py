@@ -14,10 +14,13 @@ a16 = {
 }
 dataf["A16"] = dataf['A16'].replace(a16)
 df = dataf ## matrix of counts data
-def colibrate_column(column_name, df):
-    value = df[column_name].value_counts(normalize=True)
-    unique_values_count = df[column_name].nunique()
-    df[column_name] = df[column_name].replace((value*n+value)/(value*n + (n-value*n)+1*unique_values_count))
+
+
+def colibrate_column(col, df):
+    contingency_table = pd.crosstab(df[col], df['A16'])
+    sum1 = sum(contingency_table[1])
+    sum2 = sum(contingency_table[0])
+    df[col] = df[col].replace((contingency_table[1] + 1) / (contingency_table[1] + 1 + (sum1/sum2)*(contingency_table[0]+1)))
     return df
 
 
@@ -26,19 +29,28 @@ def discretize_column(df, column_name):
     data = df[column_name]
     # Определите границы интервалов, используя выборочные квантили
     quantiles = np.quantile(data, [0, 0.2, 0.4, 0.6, 0.8, 1])
-    # Вычислите количество интервалов (бинов)
-    N = len(quantiles) - 1
-    # Генерируйте равномерные интервалы на основе квантилей
-    bins = quantiles
+    # Используйте np.unique, чтобы удалить повторяющиеся значения и получить уникальные границы интервалов
+    bins = np.unique(quantiles)
     # Выполните дискретизацию, присваивая каждому значению соответствующий интервал
-    discretized_indices = np.digitize(data, bins)
+    discretized_indices = np.digitize(data, bins,right=True)
     # Создайте новый столбец в DataFrame с дискретизированными значениями
     df[column_name] = discretized_indices
     return df
 
 
+
 def matrix_to_csv(file_name, df):
-    df.to_csv(file_name, index=False)
+    # Открываем файл для записи
+    with open(file_name, 'w') as f:
+        # Записываем названия столбцов в первую строку с выравниванием
+        column_headers = ['{:>10}'.format(col) for col in df.columns]
+        f.write('{}\n'.format(' '.join(column_headers)))
+        
+        # Записываем значения с выравниванием
+        for index, row in df.iterrows():
+            row_values = ['{:>10.3E}'.format(val) for val in row]
+            f.write('{}\n'.format(' '.join(row_values)))
+
 
 ######## 0.1
 
@@ -88,13 +100,18 @@ with open("2.1.txt", "w") as file:
 
             # Проверка гипотезы на значимость
             if p_value < alpha:
-                file.write("Гипотеза о незначимости корреляции отвергается\n")
+                file.write("Гипотеза о значимости корреляции подтверждается\n")
             else:
-                file.write("Гипотеза о незначимости корреляции не отвергается\n")
+                file.write("Гипотеза о значимости корреляции не подтверждается\n")
             
             file.write("\n")
 
 num_permutations = 1000 
+
+p_value_matrix = pd.DataFrame(index=df.columns, columns=df.columns)
+# Матрица подтверждения гипотезы 
+matrix_size = len(df.columns)
+result_matrix = np.zeros((matrix_size, matrix_size), dtype=int)
 
 with open("2.2", "w") as file:
     # Проверьте значимость коэффициентов корреляции и запишите результаты в файл
@@ -115,15 +132,21 @@ with open("2.2", "w") as file:
             
             # Вычислите p-значение как долю случайных корреляций, которые больше или равны наблюдаемой
             p_value = (np.sum(np.abs(random_correlations) >= np.abs(observed_corr)) + 1) / (num_permutations + 1)
-            
+            # Заносим p-value в матрицу
+            p_value_matrix.at[var1, var2] = p_value
+            p_value_matrix.at[var2, var1] = p_value
             file.write(f"Корреляция между {var1} и {var2}:\n")
             file.write("Наблюдаемый коэффициент корреляции Спирмена: {}\n".format(observed_corr))
             file.write("p-значение (перестановочный критерий): {}\n".format(p_value))
 
             # Проверка гипотезы на значимость
             if p_value < alpha:
-                file.write("Гипотеза о незначимости корреляции отвергается\n")
+                file.write("Гипотеза о значимости корреляции подтверждается\n")
+                result_matrix[i, j] = 1
             else:
-                file.write("Гипотеза о незначимости корреляции не отвергается\n")
-            
+                file.write("Гипотеза о значимости корреляции не подтверждается\n")
+                result_matrix[i, j] = 0
             file.write("\n")
+
+matrix_to_csv("p-value2.csv",p_value_matrix)
+np.savetxt("result_matrix.txt", result_matrix, fmt='%d', delimiter='\t')
