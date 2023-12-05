@@ -27,15 +27,21 @@ def colibrate_column(col, df):
 def discretize_column(df, column_name):
     # Получаем столбец данных
     data = df[column_name]
-    # Определите границы интервалов, используя выборочные квантили
-    quantiles = np.quantile(data, [0, 0.2, 0.4, 0.6, 0.8, 1])
-    # Используйте np.unique, чтобы удалить повторяющиеся значения и получить уникальные границы интервалов
-    bins = np.unique(quantiles)
-    # Выполните дискретизацию, присваивая каждому значению соответствующий интервал
-    discretized_indices = np.digitize(data, bins,right=True)
-    # Создайте новый столбец в DataFrame с дискретизированными значениями
-    df[column_name] = discretized_indices
-    return df
+    # Сортируем выборку по возрастанию
+    sorted_data = np.sort(data)
+    
+    # Вычисляем выборочные квантили
+    quantiles = np.unique(np.quantile(sorted_data, [0, 0.2, 0.4, 0.6, 0.8, 1]))
+    
+    # Удаляем повторяющиеся квантили
+    quantiles = np.unique(quantiles)
+    
+    # Создаем интервалы значений
+    intervals = []
+    for i in range(len(quantiles) - 1):
+        intervals.append((quantiles[i], quantiles[i+1]))
+    
+    return intervals
 
 
 
@@ -85,8 +91,12 @@ matrix_to_csv('spearman_matrix.csv', spearman_corr_matrix)
 
 ############
 
+p_values_triangular = np.zeros((len(df.columns), len(df.columns)))
+
 alpha = 0.05
 with open("2.1.txt", "w") as file:
+    
+
     # Проверьте значимость коэффициентов корреляции и запишите результаты в файл
     for i in range(len(df.columns)):
         for j in range(i + 1, len(df.columns)):
@@ -97,7 +107,7 @@ with open("2.1.txt", "w") as file:
             file.write(f"Корреляция между {var1} и {var2}:\n")
             file.write("Коэффициент корреляции Спирмена: {}\n".format(spearman_corr))
             file.write("p-значение: {}\n".format(p_value))
-
+            p_values_triangular[i, j] = p_value
             # Проверка гипотезы на значимость
             if p_value < alpha:
                 file.write("Гипотеза о значимости корреляции подтверждается\n")
@@ -108,7 +118,7 @@ with open("2.1.txt", "w") as file:
 
 num_permutations = 1000 
 
-p_value_matrix = pd.DataFrame(index=df.columns, columns=df.columns)
+p_value_matrix = np.zeros((len(df.columns), len(df.columns)))
 # Матрица подтверждения гипотезы 
 matrix_size = len(df.columns)
 result_matrix = np.zeros((matrix_size, matrix_size), dtype=int)
@@ -133,8 +143,8 @@ with open("2.2", "w") as file:
             # Вычислите p-значение как долю случайных корреляций, которые больше или равны наблюдаемой
             p_value = (np.sum(np.abs(random_correlations) >= np.abs(observed_corr)) + 1) / (num_permutations + 1)
             # Заносим p-value в матрицу
-            p_value_matrix.at[var1, var2] = p_value
-            p_value_matrix.at[var2, var1] = p_value
+            p_value_matrix[i, j] = p_value
+           
             file.write(f"Корреляция между {var1} и {var2}:\n")
             file.write("Наблюдаемый коэффициент корреляции Спирмена: {}\n".format(observed_corr))
             file.write("p-значение (перестановочный критерий): {}\n".format(p_value))
@@ -147,6 +157,24 @@ with open("2.2", "w") as file:
                 file.write("Гипотеза о значимости корреляции не подтверждается\n")
                 result_matrix[i, j] = 0
             file.write("\n")
-
-matrix_to_csv("p-value2.csv",p_value_matrix)
+np.savetxt("p_values_matrix.txt", p_values_triangular, delimiter='\t', fmt='%.12f')
+np.savetxt("p_values_matrix2.txt", p_value_matrix, delimiter='\t', fmt='%.12f')
 np.savetxt("result_matrix.txt", result_matrix, fmt='%d', delimiter='\t')
+
+
+
+# Открываем файл .txt для чтения
+with open('p_values_matrix.txt', 'r') as txtfile:
+    # Читаем содержимое файла
+    data = txtfile.readlines()
+
+# Открываем файл .csv для записи
+with open('output.csv', 'w', newline='') as csvfile:
+    # Создаем объект для записи в файл .csv
+    csvwriter = csv.writer(csvfile)
+
+    # Записываем каждую строку из файла .txt в файл .csv
+    for line in data:
+        # Разделяем строку на столбцы, если это необходимо
+        columns = line.strip().split('\t')  # Например, если столбцы разделены табуляцией
+        csvwriter.writerow(columns)

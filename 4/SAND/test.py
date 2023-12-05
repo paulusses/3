@@ -24,29 +24,38 @@ def colibrate_laplas(col, df):
 
 
 def discretize_column(df, column_name):
-    # Получаем столбец данных
+
+      # Получаем столбец данных
     data = df[column_name]
-    # Определите границы интервалов, используя выборочные квантили
-    quantiles = np.quantile(data, [0, 0.2, 0.4, 0.6, 0.8, 1])
-    # Используйте np.unique, чтобы удалить повторяющиеся значения и получить уникальные границы интервалов
-    bins = np.unique(quantiles)
-    # Выполните дискретизацию, присваивая каждому значению соответствующий интервал
-    discretized_indices = np.digitize(data, bins, right=True)
+    # Сортируем выборку по возрастанию
+    sorted_data = np.sort(data)
+# Вычисляем выборочные квантили
+    quantiles = np.unique(np.quantile(sorted_data, [0, 0.2, 0.4, 0.6, 0.8, 1]))
     
-    # Создаем новый столбец в DataFrame с дискретизированными значениями
-    df[column_name] = discretized_indices
+    # Удаляем повторяющиеся квантили
+    quantiles = np.unique(quantiles)
     
-    # Создаем словарь для соответствия интервалов значений и интервалов квантилей
-    interval_mapping = dict(zip(data, pd.cut(data, bins)))
+    # Создаем интервалы значений
+    intervals = []
+    for i in range(len(quantiles) - 1):
+        intervals.append((quantiles[i], quantiles[i+1]))
+    
+  # Заменяем значения на номера интервалов
+    discretized_data = []
+    for value in data:
+        for i, interval in enumerate(intervals):
+            if interval[0] <= value < interval[1]:
+                discretized_data.append(i)
+                break
+    
+    return intervals, discretized_data
 
-    return df, interval_mapping
+intervals, discretized_data = discretize_column(df,'A15')
+print(intervals)
+print(((np.sort(df['A15']))))
+# df['A11'] = (discretized_data)
+# print(df['A11'])
 
-# Применяем функцию и получаем результат
-df, interval_mapping = discretize_column(df, 'A11')
-
-# Выводим результат
-for value, interval in interval_mapping.items():
-    print(f"Value {value} in Interval {interval}")
 
 
 
